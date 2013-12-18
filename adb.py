@@ -37,9 +37,11 @@ class Adb():
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.connect((self.host, self.port))
         self.connection = s
-        command = "host:transport-any"
+        command = "host:transport-usb"
         self.adb_write(command)
-        self.adb_read()
+        if not self.adb_status(self.adb_read(raw=True)):
+            print("Can not detect your device")
+            exit(1)  # raising an exception is messy
         time.sleep(1)
 
     def adb_write(self, command):
@@ -53,9 +55,11 @@ class Adb():
         command = "".join([len_command, command])
         self.connection.send(command)
 
-    def adb_read(self):
+    def adb_read(self, raw=False):
         read_data = self.connection.recv(4096)
-        return read_data[4:]
+        if not raw:
+            read_data = read_data[4:]
+        return read_data
 
     def adb_command(self, command, tries=3, pause=0.0):
         tried = 0
@@ -64,12 +68,13 @@ class Adb():
             try:
                 self.adb_write(command)
                 time.sleep(pause)
-                return_data = self.adb_read()
-                if return_data:
-                    return return_data
+                return_data = self.adb_read(raw=True)
+                if self.adb_status(return_data):
+                    return return_data[4:]
             except socket.error:
                 self.adb_connect()
-        raise Exception("Can not detect your device")
+        print("{} can not be run on your device".format(command))
+        exit(1)
 
     @staticmethod
     def adb_status(data):
@@ -85,10 +90,11 @@ class AdbFunctions(Adb):
 
     def adb_shell_command(self, command):
         command = "shell:{}".format(command)
-        return self.adb_command(command, pause=0.2)
+        return self.adb_command(command, pause=0.5)
 
 
 if __name__ == '__main__':
     adb = AdbFunctions()
     print(adb.adb_devices())
-    print(adb.adb_shell_command("ls /"))
+    print(adb.adb_shell_command("su -c 'ls /'"))
+    print(adb.adb_command("host:version"))
