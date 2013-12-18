@@ -60,6 +60,7 @@ class Adb():
     def adb_command(self, command, tries=3, pause=0.0):
         tried = 0
         while tried < tries:
+            tried += 1
             try:
                 self.adb_write(command)
                 time.sleep(pause)
