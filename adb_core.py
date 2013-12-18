@@ -20,12 +20,11 @@ import socket
 import time
 
 
-class Adb():
+class AdbCore():
     def __init__(self, host='127.0.0.1', port=5037):
         self.host = host
         self.port = port
         self.connection = None
-        self.adb_connect()
 
     def adb_connect(self):
         """
@@ -55,24 +54,20 @@ class Adb():
         command = "".join([len_command, command])
         self.connection.send(command)
 
-    def adb_read(self, raw=False):
-        read_data = self.connection.recv(4096)
+    def adb_read(self, raw=False, buff=4096):
+        read_data = self.connection.recv(buff)
         if not raw:
             read_data = read_data[4:]
         return read_data
 
-    def adb_command(self, command, tries=3, pause=0.0):
-        tried = 0
-        while tried < tries:
-            tried += 1
-            try:
-                self.adb_write(command)
-                time.sleep(pause)
-                return_data = self.adb_read(raw=True)
-                if self.adb_status(return_data):
-                    return return_data[4:]
-            except socket.error:
-                self.adb_connect()
+    def adb_command(self, command, pause=0.0):
+        # a new socket must be created for every command
+        self.adb_connect()
+        self.adb_write(command)
+        time.sleep(pause)
+        return_data = self.adb_read(raw=True)
+        if self.adb_status(return_data):
+            return return_data[4:]
         print("{} can not be run on your device".format(command))
         exit(1)
 
@@ -81,20 +76,3 @@ class Adb():
         if data[:4] == "OKAY":
             return True
         return False
-
-
-class AdbFunctions(Adb):
-    def adb_devices(self):
-        command = "host:devices"
-        return self.adb_command(command)
-
-    def adb_shell_command(self, command):
-        command = "shell:{}".format(command)
-        return self.adb_command(command, pause=0.5)
-
-
-if __name__ == '__main__':
-    adb = AdbFunctions()
-    print(adb.adb_devices())
-    print(adb.adb_shell_command("su -c 'ls /'"))
-    print(adb.adb_command("host:version"))
