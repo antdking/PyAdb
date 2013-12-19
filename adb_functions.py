@@ -16,7 +16,7 @@ Copyright (C) 2013 Cybojenix <anthonydking@slimroms.net>
 """
 
 from adb_core import AdbCore
-
+from time import time
 
 class AdbFunctions(AdbCore):
     def devices(self):
@@ -31,7 +31,7 @@ class AdbFunctions(AdbCore):
         if return_data:
             return return_data
 
-    def logcat(self, branch=""):
+    def logcat(self, branch="", timeout=0.0):
         command = "shell:exec logcat"
         if branch:
             command = " -b ".join([command, branch])
@@ -42,6 +42,8 @@ class AdbFunctions(AdbCore):
         self.write(command)
         # this needs sorting, perhaps thread it?
         # it isn't killed until a block is processed
+        if timeout:
+            timeout += time()
         try:
             while True:
                 return_data = self.read(raw=True)
@@ -50,5 +52,9 @@ class AdbFunctions(AdbCore):
                 else:  # connection broken
                     self.close_connection()
                     break
+                if timeout:
+                    if time() > timeout:
+                        self.close_connection()
+                        return
         except KeyboardInterrupt:
             return

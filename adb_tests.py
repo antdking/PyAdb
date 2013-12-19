@@ -43,7 +43,7 @@ if __name__ == '__main__':
         print("raw commands: device can not be found")
 
     # adb logcat
-    for log_block in adb.logcat():
+    for log_block in adb.logcat(timeout=5):
         if log_block:
             print(log_block)
         else:
