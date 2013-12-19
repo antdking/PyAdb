@@ -29,7 +29,7 @@ if __name__ == '__main__':
         print("adb device: device can not be found")
 
     # adb shell commands
-    shell_command = adb.shell_command("su -c 'ls /dev/log")
+    shell_command = adb.shell_command("su -c 'ls /dev/log'")
     if shell_command:
         print(shell_command)
     else:
