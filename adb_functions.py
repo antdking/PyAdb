@@ -15,7 +15,6 @@ Copyright (C) 2013 Cybojenix <anthonydking@slimroms.net>
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from __future__ import print_function
 from adb_core import AdbCore
 
 

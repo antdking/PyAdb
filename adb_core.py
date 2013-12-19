@@ -15,9 +15,8 @@ Copyright (C) 2013 Cybojenix <anthonydking@slimroms.net>
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from __future__ import print_function
-import socket
-import time
+from socket import socket, AF_INET, SOCK_STREAM, SHUT_RDWR
+from time import sleep
 
 
 class AdbCore():
@@ -33,18 +32,17 @@ class AdbCore():
         """
         if self.connection is not None:
             self.close_connection()
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s = socket(AF_INET, SOCK_STREAM)
         s.connect((self.host, self.port))
         self.connection = s
         command = "host:transport-usb"
         self.write(command)
         read_data = self.read(raw=True)
-        print(read_data)
         if self.status(read_data):
             return 1
 
     def close_connection(self):
-        self.connection.shutdown(socket.SHUT_RDWR)
+        self.connection.shutdown(SHUT_RDWR)
         self.connection.close()
         self.connection = None
 
@@ -69,15 +67,13 @@ class AdbCore():
     def command(self, command, pause=0.0):
         # a new socket must be created for every command
         if not self.connect():
-            print("not connected")
             return 0
         self.write(command)
-        time.sleep(pause)
+        sleep(pause)
         return_data = self.read(raw=True)
         if self.status(return_data):
             return return_data[4:]
-        print("{} can not be run on your device".format(command))
-        exit(1)
+        return 0
 
     @staticmethod
     def status(data):
