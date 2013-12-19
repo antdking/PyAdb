@@ -15,7 +15,7 @@ Copyright (C) 2013 Cybojenix <anthonydking@slimroms.net>
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from socket import socket, AF_INET, SOCK_STREAM, SHUT_RDWR
+from socket import socket, AF_INET, SOCK_STREAM, SHUT_RDWR, error as SocketError
 from time import sleep
 
 
@@ -42,7 +42,10 @@ class AdbCore():
             return 1
 
     def close_connection(self):
-        self.connection.shutdown(SHUT_RDWR)
+        try:
+            self.connection.shutdown(SHUT_RDWR)
+        except SocketError:
+            pass  # forcibly shut down already
         self.connection.close()
         self.connection = None
 
