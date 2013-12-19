@@ -17,7 +17,7 @@ Copyright (C) 2013 Cybojenix <anthonydking@slimroms.net>
 
 from __future__ import print_function
 import socket
-import time
+from time import sleep
 
 
 class AdbCore():
@@ -41,7 +41,6 @@ class AdbCore():
         if not self.adb_status(self.adb_read(raw=True)):
             print("Can not detect your device")
             exit(1)  # raising an exception is messy
-        time.sleep(1)
 
     def adb_write(self, command):
         # first the command needs it's length adding as a prefix
@@ -64,7 +63,7 @@ class AdbCore():
         # a new socket must be created for every command
         self.adb_connect()
         self.adb_write(command)
-        time.sleep(pause)
+        sleep(pause)
         return_data = self.adb_read(raw=True)
         if self.adb_status(return_data):
             return return_data[4:]
