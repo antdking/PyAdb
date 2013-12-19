@@ -20,15 +20,31 @@ from adb_functions import AdbFunctions
 
 if __name__ == '__main__':
     adb = AdbFunctions()
+
     # adb devices demonstration
-    print(adb.adb_devices())
+    adb_devices = adb.devices()
+    if adb_devices:
+        print(adb_devices)
+    else:
+        print("adb device: device can not be found")
 
     # adb shell commands
-    print(adb.adb_shell_command("su -c 'ls /dev/log/'"))
+    shell_command = adb.shell_command("su -c 'ls /dev/log")
+    if shell_command:
+        print(shell_command)
+    else:
+        print("shell command: device can not be found")
 
     # adb raw commands
-    print(adb.adb_command("host:version"))
+    adb_command = adb.command("host:version")
+    if adb_command:
+        print(adb_command)
+    else:
+        print("raw commands: device can not be found")
 
     # adb logcat
-    for log_block in adb.adb_logcat(branch="radio"):
-        print(log_block)
+    for log_block in adb.logcat():
+        if log_block:
+            print(log_block)
+        else:
+            print("logcat: device disconnected")

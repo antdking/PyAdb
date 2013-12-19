@@ -17,7 +17,7 @@ Copyright (C) 2013 Cybojenix <anthonydking@slimroms.net>
 
 from __future__ import print_function
 import socket
-from time import sleep
+import time
 
 
 class AdbCore():
@@ -25,53 +25,66 @@ class AdbCore():
         self.host = host
         self.port = port
         self.connection = None
+        self.connect()
 
-    def adb_connect(self):
+    def connect(self):
         """
         create a socket to the device, connect to it, and check it
         """
         if self.connection is not None:
-            self.connection.close()
-            self.connection = None
+            self.close_connection()
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.connect((self.host, self.port))
         self.connection = s
         command = "host:transport-usb"
-        self.adb_write(command)
-        if not self.adb_status(self.adb_read(raw=True)):
-            print("Can not detect your device")
-            exit(1)  # raising an exception is messy
+        self.write(command)
+        read_data = self.read(raw=True)
+        print(read_data)
+        if self.status(read_data):
+            return 1
 
-    def adb_write(self, command):
+    def close_connection(self):
+        self.connection.shutdown(socket.SHUT_RDWR)
+        self.connection.close()
+        self.connection = None
+
+    def write(self, command):
         # first the command needs it's length adding as a prefix
         # this is in hex form, and must be 4 digits long
-        if self.connection is None:
-            raise Exception("Error: No connection has been set up")
         len_command = str(hex(len(command)))[2:].upper()
         while len(len_command) < 4:
             len_command = "".join(["0", len_command])
         command = "".join([len_command, command])
         self.connection.send(command)
 
-    def adb_read(self, raw=False, buff=4096):
+    def read(self, raw=False, buff=4096):
         read_data = self.connection.recv(buff)
         if not raw:
             read_data = read_data[4:]
         return read_data
 
-    def adb_command(self, command, pause=0.0):
+    def read_stream(self, raw=False, buff=4096):
+        pass
+
+    def command(self, command, pause=0.0):
         # a new socket must be created for every command
-        self.adb_connect()
-        self.adb_write(command)
-        sleep(pause)
-        return_data = self.adb_read(raw=True)
-        if self.adb_status(return_data):
+        if not self.connect():
+            print("not connected")
+            return 0
+        self.write(command)
+        time.sleep(pause)
+        return_data = self.read(raw=True)
+        if self.status(return_data):
             return return_data[4:]
         print("{} can not be run on your device".format(command))
         exit(1)
 
     @staticmethod
-    def adb_status(data):
+    def status(data):
         if data[:4] == "OKAY":
             return True
         return False
+
+if __name__ == '__main__':
+    adb = AdbCore()
+    adb.connect()

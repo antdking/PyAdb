@@ -20,25 +20,36 @@ from adb_core import AdbCore
 
 
 class AdbFunctions(AdbCore):
-    def adb_devices(self):
+    def devices(self):
         command = "host:devices"
-        return self.adb_command(command)
+        return_data = self.command(command)
+        if return_data:
+            return return_data
 
-    def adb_shell_command(self, command):
+    def shell_command(self, command):
         command = "shell:{}".format(command)
-        return self.adb_command(command, pause=0.5)
+        return_data = self.command(command, pause=0.2)
+        if return_data:
+            return return_data
 
-    def adb_logcat(self, branch=""):
+    def logcat(self, branch=""):
         command = "shell:exec logcat"
         if branch:
             command = " -b ".join([command, branch])
         # we don't use the predefined command function. create a new socket
-        self.adb_connect()
-        self.adb_write(command)
+        if not self.connect():
+            yield False
+            return
+        self.write(command)
         # this needs sorting, perhaps thread it?
         # it isn't killed until a block is processed
         try:
             while True:
-                yield self.connection.recv(4096)
+                return_data = self.read(raw=True)
+                if return_data:
+                    yield return_data
+                else:  # connection broken
+                    self.close_connection()
+                    break
         except KeyboardInterrupt:
-            pass
+            return
