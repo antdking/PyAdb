@@ -35,7 +35,7 @@ class AdbCore():
         s = socket(AF_INET, SOCK_STREAM)
         s.connect((self.host, self.port))
         self.connection = s
-        command = "host:transport-usb"
+        command = "host:transport-any"
         self.write(command)
         read_data = self.read(raw=True)
         if self.status(read_data):

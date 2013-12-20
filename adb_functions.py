@@ -18,6 +18,7 @@ Copyright (C) 2013 Cybojenix <anthonydking@slimroms.net>
 from adb_core import AdbCore
 from time import time
 
+
 class AdbFunctions(AdbCore):
     def devices(self):
         command = "host:devices"
@@ -58,3 +59,13 @@ class AdbFunctions(AdbCore):
                         return
         except KeyboardInterrupt:
             return
+
+    def interactive_shell(self):
+        from adb_shell import AdbShell
+        command = "shell:"
+        if not self.connect():
+            return
+        self.write(command)
+        self.read()
+        adb_shell = AdbShell(self.connection)
+        adb_shell.interact()

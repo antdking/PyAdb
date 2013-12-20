@@ -48,3 +48,6 @@ if __name__ == '__main__':
             print(log_block)
         else:
             print("logcat: device disconnected")
+
+    print("loading interactive shell")
+    adb.interactive_shell()
